@@ -1,0 +1,111 @@
+(define make-ok
+  (lambda (val)
+  (cons "Ok" val)
+  ))
+ 
+(define make-error
+  (lambda (msg)
+    (cons "Failure" msg)
+  ))
+
+(define ok?
+  (lambda (res)
+    (if(pair? res)
+      (eq?(car res) "Ok")#f)
+  ))
+
+(define error?
+  (lambda (res)
+    (if(pair? res)
+      (eq?(car res) "Failure")#f))
+ )
+
+(define result?
+  (lambda (res)
+    (and (pair? res)
+      (or(error? res)(ok? res))
+  ) )
+)
+
+(define result->val
+  (lambda (res)
+    (cdr res)
+  )
+)
+
+(define bind 
+  (lambda (f)
+    (lambda (res)
+     (if(ok? res) (f(cdr res))
+      (make-error(cdr res)))
+    ))
+)
+
+(define make-dict
+  (lambda ()
+    (cons "dict" '()))
+)
+
+
+(define dict?
+  (lambda (e)    
+    (if (pair? e)(if (eq? (car e) "dict") #t #f) #f))
+)
+      
+
+
+(define get
+  (lambda (dict k)
+    (if(dict? dict)
+    (if (empty? dict)(make-error "Key not found")(get-Helper (cdr dict) k))
+    (make-error "Error: not a dictionary"))  
+))
+
+(define get-Helper
+  (lambda (dict k)
+    (if (empty? dict)(make-error "Key not found") (if (eq?(car(car dict)) k) (make-ok(cdr(car dict))) (get-Helper (cdr dict) k)))
+    )
+  )
+
+(define put
+(lambda (dict k v)
+(if (dict? dict)
+(make-ok(cons "dict" (put-Helper2(cdr dict) k v)))
+(make-error "Error: not a dictionary"))
+)
+)
+(define put-Helper2
+  (lambda (lst k v)
+    (if (empty? lst) (cons  (cons k v) '())
+        (if (eq? (car(car lst)) k) (cons (cons k v) (cdr lst)) (cons (car lst) (put-Helper2 (cdr lst) k v)))))) 
+
+
+
+
+(define map-dict
+  (lambda (dict f)
+  (make-ok (cons "dict" (map-dictHelper (cdr dict) f)))
+    )
+ )
+(define map-dictHelper
+  (lambda (dict f)
+  (if(empty? dict) '() 
+  (cons (cons (car (car dict))(f(cdr(car dict))))(map-dictHelper (cdr dict) f))) 
+  ))
+
+
+
+(define filter-dict
+  (lambda (dict pred)    
+    (make-ok (cons "dict" (filter-dict-Helper (cdr dict) pred)))
+  )
+)
+ 
+(define filter-dict-Helper
+  (lambda (dict pred) 
+    (if(empty? dict) '() 
+     (if (pred (car (car dict)) (cdr (car dict)))
+    (cons (car dict)(filter-dict-Helper (cdr dict) pred))(filter-dict-Helper (cdr dict) pred)
+    ) 
+    
+  )))
